@@ -1,0 +1,157 @@
+data:
+  train_bs: 1
+  validation_bs: 1
+  train_width: 512
+  train_height: 512
+  train_val_max_img: 4
+  validation_val_max_img: 16
+
+
+train_data:
+  target: src.dataset.Blobs_DiverseTopo_displacement_rndLayerOrder.ChDataset
+  params:
+    seed: 42
+    mod: -1
+    H: 512
+    W: 512
+    cond_H: 64
+    cond_W: 64
+    #fixed, no longer maintained
+    sample_n_frames: 1
+    sample_size:     512
+    #fixed, no longer maintained
+    sample_stride:   1
+    n_pairs: 0
+    n_targets: 0
+    change_graph_freq: 3 #how many batches to use the same appearance before changing one
+    move_all_limbs_prob: 0.1 #probability that all branchs of the topology tree transform
+    max_move_limbs: 4 #max number of branchs that could transform for one new pose
+    limb_num: 10 #max number of blobs in one topology tree
+    #could also be uniform, which makes the branchs rotate by a fixed degree
+    #fixed, no longer maintained
+    limb_rotate_mode: "random" 
+    limb_rotate_angle_range: [-180, 180] #the range of random rotation angle for branches
+    draw_joint_skeleton: "displacement" #fixed, no longer maintained
+    bone_std: 4 #width of bone rectangle
+    joint_std: 4 #radius of joint circle
+    #probability of augmenting the textures such as blurring, noising.
+    #fixed, no longer maintained
+    data_aug_prob: 0. 
+    #could be random, which uses a random pose instead of force-directed layout, for the appeance guide
+    appearance_guide: "canonical" 
+    # scale_leaves_skeleton: [0.7, 1.3]
+    #whether add order info to the blue channel of the bones
+    skeleton_layer_order: True
+
+    target_source_same_bg: True
+    #unzip the background source images
+    cartoon_dataset_dir: /mnt/localssd/3backgrounds
+    #fixed, no longer maintained
+    texture_probs: [1.]
+    #fixed, no longer maintained
+    available_texture_sources: ['Cartoon_Dataset']
+    #fixed, no longer maintained
+    use_other_category_limb_prob: 0.25
+    #fixed, no longer maintained
+    different_texture_per_limb: True
+    bezier_aspect_ratio_range: [0.5, 0.9]
+    #background color of the target images
+    target_bg_color: "white"
+    #background color of the skeleton images
+    skeleton_bg_color: "black"
+    #number of layer permutations to train
+    rndLayerOrder: 3
+
+validation_data:
+  # target: animatediff.data.DiverseTopo.ChDataset
+  target: src.dataset.ChDataset_GaussianSkeleton_DiverseAppearance_rndLayerOrder.ChDataset
+  params:
+    seed: 42
+    mod: -1
+    H: 512
+    W: 512
+    cond_H: 64
+    cond_W: 64
+    data_dir: /mnt/localssd/Processed_ChDataset_Val #mnt/localssd
+    sample_n_frames: 1
+    sample_size:     512
+    sample_stride:   1
+    n_pairs: 0
+    include_theme_name: ['Al']
+    flip_prob: 0.
+    resize_prob: 0.
+    use_Cartoon_Dataset_prob: 0.
+    change_limb_prob: 0.
+    # cartoon_dataset_dir: /mnt/localssd/cartoon_classification/TEST
+    # fractal_noise_dataset_dir: /mnt/localssd/FractalNoise_Dataset
+    add_limb_prob: 0.
+    composite_by_add: False
+    everywhere_cartoon_prob: 0
+    skeleton_layer_order: True
+
+    target_source_same_bg: True
+    use_original_connection: False
+    draw_joint_skeleton: "displacement"
+    bone_std: 4
+    joint_std: 4 #radius
+    appearance_guide: "canonical"
+    # background_dir: /mnt/localssd/cartoon_classification/TEST
+    target_bg_color: "white"
+    skeleton_bg_color: "black"
+
+
+solver:
+  gradient_accumulation_steps: 1
+  mixed_precision: 'fp16'
+  enable_xformers_memory_efficient_attention: True 
+  gradient_checkpointing: False 
+  max_train_steps: 30000
+  max_grad_norm: 1.0
+  # lr
+  learning_rate: 1.0e-5
+  scale_lr: False 
+  lr_warmup_steps: 1
+  lr_scheduler: 'constant'
+
+  # optimizer
+  use_8bit_adam: True
+  adam_beta1: 0.9
+  adam_beta2: 0.999
+  adam_weight_decay:  1.0e-2
+  adam_epsilon: 1.0e-8
+
+val:
+  validation_steps: 2000
+
+
+noise_scheduler_kwargs:
+  num_train_timesteps: 1000
+  beta_start:          0.00085
+  beta_end:            0.012
+  beta_schedule:       "scaled_linear"
+  steps_offset:        1
+  clip_sample:         false
+
+base_model_path: './pretrained_weights/sd-image-variations-diffusers'
+vae_model_path: './pretrained_weights/sd-vae-ft-mse'
+image_encoder_path: './pretrained_weights/sd-image-variations-diffusers/image_encoder'
+controlnet_openpose_path: './pretrained_weights/control_v11p_sd15_openpose/diffusion_pytorch_model.bin'
+denoising_unet_path: ""
+reference_unet_path: ""
+pose_guider_path: ""
+
+weight_dtype: 'fp16'  # [fp16, fp32]
+uncond_ratio: 0.1
+noise_offset: 0.05
+snr_gamma: 5.0
+enable_zero_snr: True 
+pose_guider_pretrain: True 
+# train_batch_size: 2
+
+seed: 12580
+resume_from_checkpoint: 'latest'
+checkpointing_steps: 2000
+save_model_epoch_interval: 5
+save_name: 'stage1' #the folder results will save to under output_dir
+exp_name: 'stage1' #the folder checkpoint will be searched for and loaded from
+output_dir: './results/rndLayerOrder_512'  

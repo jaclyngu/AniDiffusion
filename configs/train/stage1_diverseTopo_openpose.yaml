@@ -1,0 +1,156 @@
+data:
+  train_bs: 1
+  validation_bs: 1
+  train_width: 256
+  train_height: 256
+  train_val_max_img: 0
+  validation_val_max_img: 70
+#   meta_paths:
+#     - "./data/fashion_meta.json"
+#   # Margin of frame indexes between ref and tgt images
+#   sample_margin: 30  
+
+train_data:
+  target: src.dataset.ChDataset_GaussianSkeleton_DiverseAppearance_OpenPose.ChDataset
+  params:
+    seed: 42
+    dataset_size: 3200
+    mod: 5
+    H: 256
+    W: 256
+    cond_H: 32
+    cond_W: 32
+    data_dir: /mnt/localssd/Processed_ChDataset_Val
+    sample_n_frames: 0
+    sample_size:     256
+    sample_stride:   1
+    n_pairs: 0
+    include_theme_name: ['Red Monster']
+    exclude_clip_name: ['Red Monster:2,3'] #['Cecy:1,3,4,5,6,7,8,9,10']
+    flip_prob: 0.
+    resize_prob: 0.
+    use_Cartoon_Dataset_prob: 0.
+    change_limb_prob: 0.
+    # cartoon_dataset_dir: /mnt/localssd/cartoon_classification/TEST
+    # fractal_noise_dataset_dir: /mnt/localssd/FractalNoise_Dataset
+    add_limb_prob: 0.
+    composite_by_add: False
+    everywhere_cartoon_prob: 0
+    color_aug_prob: 0
+    change_composite_order_prob: 0
+    skeleton_layer_order: False
+    rotate_translate_prob: 0.5
+    random_rotate_deg: [-60, 60]
+
+    use_original_connection: True
+    draw_joint_skeleton: "openpose" #"interpolation"
+    bone_std: 4 #half
+    joint_std: 4 #radius
+    appearance_guide: "canonical"
+    fix_getitem_index: [26, 27, 30, 67, 70,]
+    target_bg_color: "white"
+    skeleton_bg_color: "black"
+
+validation_data:
+  # target: animatediff.data.DiverseTopo.ChDataset
+  target: src.dataset.ChDataset_GaussianSkeleton_DiverseAppearance_OpenPose.ChDataset
+  params:
+    seed: 42
+    # dataset_size: 3200
+    # mod: 6
+    H: 256
+    W: 256
+    cond_H: 32
+    cond_W: 32
+    data_dir: /mnt/localssd/Processed_ChDataset_Val
+    sample_n_frames: 0
+    sample_size:     256
+    sample_stride:   1
+    n_pairs: 0
+    include_theme_name: ['Red Monster']
+    exclude_clip_name: ['Red Monster:1'] #['Cecy:1,3,4,5,6,7,8,9,10']
+    flip_prob: 0.
+    resize_prob: 0.
+    use_Cartoon_Dataset_prob: 0.
+    change_limb_prob: 0.
+    # cartoon_dataset_dir: /mnt/localssd/cartoon_classification/TEST
+    # fractal_noise_dataset_dir: /mnt/localssd/FractalNoise_Dataset
+    add_limb_prob: 0.
+    composite_by_add: False
+    everywhere_cartoon_prob: 0
+    color_aug_prob: 0
+    change_composite_order_prob: 0
+    skeleton_layer_order: False
+    rotate_translate_prob: 0.
+    random_rotate_deg: [-60, 60]
+
+    use_original_connection: True
+    draw_joint_skeleton: "openpose" #"interpolation"
+    bone_std: 4 #half
+    joint_std: 4 #radius
+    appearance_guide: "canonical"
+    # fix_getitem_index: [30, 101, 230, 300, 200, 270 ]
+    target_bg_color: "white"
+    skeleton_bg_color: "black"
+
+
+solver:
+  gradient_accumulation_steps: 1
+  mixed_precision: 'fp16'
+  enable_xformers_memory_efficient_attention: True 
+  gradient_checkpointing: False 
+  max_train_steps: 3000
+  max_grad_norm: 1.0
+  # lr
+  learning_rate: 1.0e-5
+  scale_lr: False 
+  lr_warmup_steps: 1
+  lr_scheduler: 'constant'
+
+  # optimizer
+  use_8bit_adam: True
+  adam_beta1: 0.9
+  adam_beta2: 0.999
+  adam_weight_decay:  1.0e-2
+  adam_epsilon: 1.0e-8
+
+val:
+  validation_steps: 1
+
+
+noise_scheduler_kwargs:
+  num_train_timesteps: 1000
+  beta_start:          0.00085
+  beta_end:            0.012
+  beta_schedule:       "scaled_linear"
+  steps_offset:        1
+  clip_sample:         false
+
+# base_model_path: './pretrained_weights/sd-image-variations-diffusers'
+# vae_model_path: './pretrained_weights/sd-vae-ft-mse'
+# image_encoder_path: './pretrained_weights/sd-image-variations-diffusers/image_encoder'
+# controlnet_openpose_path: './pretrained_weights/control_v11p_sd15_openpose/diffusion_pytorch_model.bin'
+
+base_model_path: "./pretrained_weights/stable-diffusion-v1-5/"
+vae_model_path: "./pretrained_weights/sd-vae-ft-mse"
+image_encoder_path: "./pretrained_weights/image_encoder"
+denoising_unet_path: "./pretrained_weights/denoising_unet.pth"
+reference_unet_path: "./pretrained_weights/reference_unet.pth"
+pose_guider_path: "./pretrained_weights/pose_guider.pth"
+# motion_module_path: "./pretrained_weights/motion_module.pth"
+
+
+weight_dtype: 'fp16'  # [fp16, fp32]
+uncond_ratio: 0.1
+noise_offset: 0.05
+snr_gamma: 5.0
+enable_zero_snr: True 
+pose_guider_pretrain: False #True 
+# train_batch_size: 2
+
+seed: 12580
+resume_from_checkpoint: 'latest'
+checkpointing_steps: 500
+save_model_epoch_interval: 5
+exp_name: 'stage1'
+output_dir: './results/finetune_openpose_redmonster'
